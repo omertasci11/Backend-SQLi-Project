@@ -67,3 +67,6 @@ main_site_url= "http://testphp.vulnweb.com/categories.php"
 
 for links in links_with_query(main_site_url):
     print(links)
+
+
+#git için bir yorum satırı ekledım bu main branch
