@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from urllib.parse import urljoin
+from urllib.parse import urljoin , urlparse, parse_qs , urlencode, urlunparse
 import re
 
 visited_links = set()
@@ -47,12 +47,46 @@ def links_with_query(links):
     links= get_links_recursive(links)
     golden_links=[]
     for link in links:
-        if '?' and '=' in link:
+        if '?' in link and '=' in link:
             golden_links.append(link)
     
     return golden_links
 
+
+
+def scanner(url):
+
+    golden_links = links_with_query(main_site_url)
+    url_with_payload = []
+    for url in golden_links:
+    
+        parsed_url = urlparse(url)
+    
+        query_params = parse_qs(parsed_url.query)
+        
+        if query_params:
+
+            last_param_key = list(query_params.keys())[-1]
+
+            query_params[last_param_key] = ["*"] * len(query_params[last_param_key])
+        
+            updated_query = urlencode(query_params, doseq=True)
+
+            final_link = urlunparse(parsed_url._replace(query=updated_query))
+
+            url_with_payload.append(final_link)
+
+        else:
+           print(url)
+
+    return url_with_payload
+
+
 main_site_url = "https://www.prepostseo.com/"
 
-for link in links_with_query(main_site_url):
-    print(link)
+for a in scanner(main_site_url):
+    
+    print(a)
+
+
+

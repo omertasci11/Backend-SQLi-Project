@@ -1,58 +1,22 @@
-from bs4 import BeautifulSoup
-import requests
-from urllib.parse import urljoin
-import re
+from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 
-visited_links = set()
+def scanner(url):
 
-def check_url(url):
-    regex = re.compile(r'^(https?|ftp):\/\/'  # http:// or https:// or ftp://
-                       r'([a-zA-Z0-9]+([a-zA-Z0-9-]*[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}'  # domain
-                       r'(:[0-9]+)?'  # optional port
-                       r'(\/[^\s]*)?$')  # optional path
+    parsed_url = urlparse(url)
 
-    if re.search(regex, url):
-        return url
-    else:
-        return False
+    query_params = parse_qs(parsed_url.query)
 
-def get_links_recursive(url, depth=3):
-    global visited_links
+    if query_params:
+        last_param_key = list(query_params.keys())[-1]
 
-    url = check_url(url)
-    if not url or url in visited_links or depth == 0:
-        return set()
+        query_params[last_param_key] = ["*"]
+        
+        updated_query = urlencode(query_params, doseq=True)
 
-    visited_links.add(url)
+        new_url = urlunparse(parsed_url._replace(query=updated_query))
 
-    try:
-        with requests.get(url, timeout=5) as response:
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            base_url = response.url
-            links = {urljoin(url, a['href']) for a in soup.find_all('a', href=True) if urljoin(url, a['href']).startswith(main_site_url)}
-            internal_links = set(links)
 
-            for link in links:
-                internal_links.update(get_links_recursive(link, depth - 1))
 
-            return internal_links
+    return new_url
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error accessing {url}: {e}")
-        return set()
-
-def links_with_query(links):
-
-    links= get_links_recursive(links)
-    golden_links=[]
-    for link in links:
-        if '?' and '=' in link:
-            golden_links.append(link)
-    
-    return golden_links
-
-main_site_url = "http://testphp.vulnweb.com"
-
-for link in links_with_query(main_site_url):
-    print(link)
+print(scanner('https://www.prepostseo.com/guest-posting-sites?page=2'))
