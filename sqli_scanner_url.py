@@ -84,9 +84,9 @@ def scanner(url):
 
 main_site_url = "https://www.prepostseo.com/"
 
-for a in scanner(main_site_url):
+for link in scanner(main_site_url):
     
-    print(a)
+    print(link)
 
 
 
